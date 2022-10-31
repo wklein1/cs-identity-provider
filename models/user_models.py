@@ -1,4 +1,6 @@
 from models.custom_base_model import CustomBaseModel
+from pydantic import Field, EmailStr
+
 
 class UserInModel(CustomBaseModel):
     first_name:str
