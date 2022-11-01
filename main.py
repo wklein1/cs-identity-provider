@@ -11,7 +11,7 @@ app = FastAPI()
 
 PROJECT_KEY = config("PROJECT_KEY")
 JWT_SECRET = config("JWT_SECRET")
-JWT_ALGORITHM = config("JWT_ALGORITHM")
+JWT_ALGORITHM="HS256"
 JWT_AUDIENCE="kbe-aw2022-frontend.netlify.app"
 JWT_ISSUER="cs-identity-provider.deta.dev"
 
