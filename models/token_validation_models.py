@@ -1,6 +1,6 @@
 from models.custom_base_model import CustomBaseModel
 
-class tokenInModel(CustomBaseModel):
+class tokenModel(CustomBaseModel):
     token:str
 
 class validateResponseModel(CustomBaseModel):
