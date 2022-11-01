@@ -55,7 +55,8 @@ def test_register_user_endpoint():
     response = client.post("/users",json=test_user)
     #ASSERT
     assert response.status_code == 201
-    assert "userId" in response.json()
+    assert "token" in response.json()
+    assert response.json()["userName"] == "test_usr"
 
 def test_register_user_endpoint_fails_invalid_password():
     #ARRANGE
@@ -109,7 +110,7 @@ def test_register_user_endpoint_fails_invalid_last_name():
     client = TestClient(app)
     test_user = {
         "first_name":"test",
-        "last_name":"t",
+        "last_name":"",
         "user_name":"test_usr",
         "email":"test@test.com",
         "password":"testtesttest4"

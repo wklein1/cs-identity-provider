@@ -1,11 +1,11 @@
 from models.custom_base_model import CustomBaseModel
 from pydantic import Field, EmailStr, constr
 
-PASSWORD_REGEX ="/^(?=.*[A-z])(?=.*[0-9]).{8,24}$/"
+PASSWORD_REGEX ="^(?=.*[A-z])(?=.*[0-9]).{8,24}$"
 
 class UserInModel(CustomBaseModel):
     first_name:str = Field(min_length=2, max_length=24)
-    last_name:str = Field(min_items=1, max_length=24)
+    last_name:str = Field(min_length=1, max_length=24)
     user_name:str = Field(min_length=3, max_length=24)
     email:EmailStr
     password:constr(regex=PASSWORD_REGEX)
@@ -35,3 +35,7 @@ class UserOutModel(CustomBaseModel):
                 "password":"123"
             }
         }
+
+class RegistrationResponseModel(CustomBaseModel):
+    user_name:str
+    token:str
