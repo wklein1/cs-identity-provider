@@ -1,13 +1,14 @@
 from models.custom_base_model import CustomBaseModel
-from pydantic import Field, EmailStr
+from pydantic import Field, EmailStr, constr
 
+PASSWORD_REGEX ="/^(?=.*[A-z])(?=.*[0-9]).{8,24}$/"
 
 class UserInModel(CustomBaseModel):
-    first_name:str
-    last_name:str
-    user_name:str
+    first_name:str = Field(min_length=2, max_length=24)
+    last_name:str = Field(min_items=1, max_length=24)
+    user_name:str = Field(min_length=3, max_length=24)
     email:EmailStr
-    password:str
+    password:constr(regex=PASSWORD_REGEX)
     class Config:
         schema = {
             "demo":{

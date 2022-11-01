@@ -40,12 +40,12 @@ app.add_middleware(
     response_model=token_validation_models.validateResponseModel,
     response_description="Returns key value pair 'is_valid:boolean'.",
 )
-def validate_token(token: token_validation_models.tokenInModel):
+def validate_token(token: token_validation_models.tokenModel):
     jwt_token = token.dict()["token"]
     token_is_valid = jwt_encoder.validate_jwt(token=jwt_token,audience=JWT_AUDIENCE,issuer=JWT_ISSUER)
     return {"is_valid":token_is_valid}
 
-print(jwt_encoder.generate_jwt({
-    "iss":JWT_ISSUER,
-    "aud":JWT_AUDIENCE
-}))
+# print(jwt_encoder.generate_jwt({
+#     "iss":JWT_ISSUER,
+#     "aud":JWT_AUDIENCE
+# }))
