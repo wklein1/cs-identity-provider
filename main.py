@@ -47,6 +47,7 @@ def validate_token(token: token_validation_models.tokenModel):
     token_is_valid = jwt_encoder.validate_jwt(token=jwt_token,audience=JWT_AUDIENCE,issuer=JWT_ISSUER)
     return {"is_valid":token_is_valid}
 
+
 @app.post(
     "/users",
     description="Register a new user.",
@@ -60,7 +61,7 @@ def validate_token(token: token_validation_models.tokenModel):
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if provided user data is not valid."
         }},
-    response_model=auth_models.RegistrationResponseModel,
+    response_model=auth_models.AuthResponseModel,
     response_description="Returns an object with the user name and access token for the registered user'.",
 )
 def register_user(user_data: user_models.UserInModel):
@@ -81,3 +82,34 @@ def register_user(user_data: user_models.UserInModel):
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
     return {"user_name":new_user["user_name"], "token":jwt_token}
+
+
+@app.post(
+    "/login",
+    description="Authenticate a user.",
+    response_model=auth_models.AuthResponseModel,
+    response_description="Returns an object with the user name and access token for the authenticated user'.",
+)
+def login_user(user_data: auth_models.LoginModel):
+    user_dict = user_data.dict()
+    try:
+        db_response = usersDB.fetch({"user_name":user_dict["user_name"]})
+    except:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+    if len(db_response.items)>0:
+        user = db_response.items[0]
+    else:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    
+    if not encryption.verify(user_dict["password"], user["password"]):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    token_payload={
+        "userId":user["key"],
+        "aud":JWT_AUDIENCE,
+        "iss":JWT_ISSUER,
+        "iat":datetime.now().timestamp(),
+        "exp":(datetime.now() + timedelta(minutes=20)).timestamp()
+    }
+    jwt_token = jwt_encoder.generate_jwt(token_payload)
+    return {"user_name":user["user_name"], "token":jwt_token}

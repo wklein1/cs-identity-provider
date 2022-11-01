@@ -1,4 +1,6 @@
-class RegistrationResponseModel(CustomBaseModel):
+from models.custom_base_model import CustomBaseModel
+
+class AuthResponseModel(CustomBaseModel):
     user_name:str
     token:str
 
