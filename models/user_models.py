@@ -35,7 +35,3 @@ class UserOutModel(CustomBaseModel):
                 "password":"123"
             }
         }
-
-class RegistrationResponseModel(CustomBaseModel):
-    user_name:str
-    token:str

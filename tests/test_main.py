@@ -3,6 +3,35 @@ from fastapi import status
 from decouple import config
 from main import app
 
+def test_login_user_endpoint():
+    #ARRANGE
+    client = TestClient(app)
+    test_user = {
+        "user_name":"test_usr",
+        "password":"testtesttest4"
+    }
+    #ACT
+    response = client.post("/login",json=test_user)
+    #ASSERT
+    assert response.status_code == 200
+    assert "token" in response.json()
+    assert response.json()["userName"] == "test_usr"
+
+
+def test_login_user_endpoint_fails_invalid_credentials():
+    #ARRANGE
+    client = TestClient(app)
+    test_user = {
+        "user_name":"test_usr",
+        "password":"testtesttest1"
+    }
+    #ACT
+    response = client.post("/login",json=test_user)
+    #ASSERT
+    assert response.status_code == 422
+    assert response.json() == {'detail': 'Unprocessable Entity'}
+
+
 def test_validate_token_endpoint():
     #ARRANGE
     VALID_TOKEN = config("VALID_TOKEN")
@@ -14,6 +43,7 @@ def test_validate_token_endpoint():
     assert response.status_code == 200
     assert response.json() == expected_response
 
+
 def test_validate_token_endpoint_with_invalid_token():
     #ARRANGE
     client = TestClient(app)
@@ -24,6 +54,7 @@ def test_validate_token_endpoint_with_invalid_token():
     #ASSERT
     assert response.status_code == 200
     assert response.json() == expected_response
+
 
 def test_register_user_endpoint():
     #ARRANGE
@@ -40,6 +71,7 @@ def test_register_user_endpoint():
     #ASSERT
     assert response.status_code == 201
     assert "userId" in response.json()
+
 
 def test_register_user_endpoint():
     #ARRANGE
@@ -58,6 +90,7 @@ def test_register_user_endpoint():
     assert "token" in response.json()
     assert response.json()["userName"] == "test_usr"
 
+
 def test_register_user_endpoint_fails_invalid_password():
     #ARRANGE
     client = TestClient(app)
@@ -72,6 +105,7 @@ def test_register_user_endpoint_fails_invalid_password():
     response = client.post("/users",json=test_user)
     #ASSERT
     assert response.status_code == 422
+
 
 def test_register_user_endpoint_fails_invalid_email():
     #ARRANGE
