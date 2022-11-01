@@ -4,7 +4,7 @@ from decouple import config
 from datetime import datetime,timedelta
 from modules.jwt.jwt_module import JwtEncoder
 from modules.password import encryption
-from models import token_validation_models, user_models, error_models
+from models import token_validation_models, user_models, error_models, auth_models
 import uuid
 import jwt
 import deta
@@ -60,7 +60,7 @@ def validate_token(token: token_validation_models.tokenModel):
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if provided user data is not valid."
         }},
-    response_model=user_models.RegistrationResponseModel,
+    response_model=auth_models.RegistrationResponseModel,
     response_description="Returns an object with the user name and access token for the registered user'.",
 )
 def register_user(user_data: user_models.UserInModel):
