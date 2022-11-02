@@ -4,6 +4,9 @@ from decouple import config
 from modules.jwt.jwt_module import JwtEncoder
 from main import app
 
+VALID_MICROSERVICE_ACCESS_TOKEN = config("VALID_MICROSERVICE_ACCESS_TOKEN")
+MICROSERVICE_AUTH_HEADERS = {"microserviceAccessToken":VALID_MICROSERVICE_ACCESS_TOKEN}
+
 def test_register_user_endpoint_success():
     #ARRANGE
     client = TestClient(app)
@@ -19,14 +22,14 @@ def test_register_user_endpoint_success():
         "password":"testtesttest4"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 201
     assert "token" in response.json()
     assert response.json()["userName"] == "test_usr2"
     #CLEANUP
     new_user_id = jwt_encoder.decode_jwt(response.json()["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
-    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id})
+    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id}|MICROSERVICE_AUTH_HEADERS)
 
 
 def test_register_user_endpoint_fails_user_name_already_taken():
@@ -43,7 +46,7 @@ def test_register_user_endpoint_fails_user_name_already_taken():
         "detail":"User name is already taken"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 409
     assert response.json() == expected_error
@@ -60,7 +63,7 @@ def test_register_user_endpoint_fails_invalid_password():
         "password":"test"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422
 
@@ -76,7 +79,7 @@ def test_register_user_endpoint_fails_invalid_email():
         "password":"testtesttest4"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422
 
@@ -92,7 +95,7 @@ def test_register_user_endpoint_fails_invalid_first_name():
         "password":"testtesttest4"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422
 
@@ -108,7 +111,7 @@ def test_register_user_endpoint_fails_invalid_last_name():
         "password":"testtesttest4"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422
 
@@ -124,6 +127,6 @@ def test_register_user_endpoint_fails_invalid_user_name():
         "password":"testtesttest4"
     }
     #ACT
-    response = client.post("/users",json=test_user)
+    response = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422

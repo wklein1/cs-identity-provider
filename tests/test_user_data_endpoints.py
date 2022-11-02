@@ -5,6 +5,9 @@ from modules.jwt.jwt_module import JwtEncoder
 import uuid
 from main import app
 
+VALID_MICROSERVICE_ACCESS_TOKEN = config("VALID_MICROSERVICE_ACCESS_TOKEN")
+MICROSERVICE_AUTH_HEADERS = {"microserviceAccessToken":VALID_MICROSERVICE_ACCESS_TOKEN}
+
 def test_get_user_endpoint_returns_user_data():
     #ARRANGE
     client = TestClient(app)
@@ -16,7 +19,7 @@ def test_get_user_endpoint_returns_user_data():
         "email":"test@test.com",
     }
     #ACT
-    response = client.get(f"/users/{TEST_USER_ID}")
+    response = client.get(f"/users/{TEST_USER_ID}", headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 200
     assert response.json() == expected_user_data
@@ -29,7 +32,7 @@ def test_get_user_endpoint_user_not_found():
         "detail": "User not found"
     }
     #ACT
-    response = client.get("/users/not_existing_id")
+    response = client.get("/users/not_existing_id", headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 404
     assert response.json() == expected_error
@@ -41,7 +44,7 @@ def test_username_is_taken_endpoint_username_not_taken_returns_false():
     test_username = str(uuid.uuid1())
     expected_response = {"isTaken":False}
     #ACT
-    response = client.post("/uname",json={"userName":test_username})
+    response = client.post("/uname",json={"userName":test_username}, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 200
     assert response.json() == expected_response
@@ -52,7 +55,7 @@ def test_username_is_taken_endpoint_username_is_taken_returns_true():
     test_username = "test_usr"
     expected_response = {"isTaken":True}
     #ACT
-    response = client.post("/uname",json={"userName":test_username})
+    response = client.post("/uname",json={"userName":test_username}, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 200
     assert response.json() == expected_response
@@ -76,15 +79,15 @@ def test_change_password_endpoint_success():
         "password":"testtesttest4",
         "new_password":"testtesttest5"
     }
-    new_user = client.post("/users",json=test_user)
+    new_user = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     new_user = new_user.json()
     new_user_id = jwt_encoder.decode_jwt(new_user["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
     #ACT
-    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update)
+    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 204
     #CLEANUP
-    client.delete("/users", json={"password":"testtesttest5"}, headers={"userId":new_user_id})
+    client.delete("/users", json={"password":"testtesttest5"}, headers={"userId":new_user_id}|MICROSERVICE_AUTH_HEADERS)
 
 
 def test_change_password_endpoint_fails_forbidden_wrong_password():
@@ -108,16 +111,16 @@ def test_change_password_endpoint_fails_forbidden_wrong_password():
     expected_error = {
         "detail":"Invalid password"
     }
-    new_user = client.post("/users",json=test_user)
+    new_user = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     new_user = new_user.json()
     new_user_id = jwt_encoder.decode_jwt(new_user["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
     #ACT
-    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update)
+    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 403
     assert response.json() == expected_error
     #CLEANUP
-    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id})
+    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id}|MICROSERVICE_AUTH_HEADERS)
 
 
 def test_change_password_endpoint_fails_invalid_new_password():
@@ -138,15 +141,15 @@ def test_change_password_endpoint_fails_invalid_new_password():
         "password":"testtesttest4",
         "new_password":"invalid_new_password"
     }
-    new_user = client.post("/users",json=test_user)
+    new_user = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     new_user = new_user.json()
     new_user_id = jwt_encoder.decode_jwt(new_user["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
     #ACT
-    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update)
+    response = client.patch(f"/users/{new_user_id}/password", json=test_user_password_update, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 422
     #CLEANUP
-    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id})
+    client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id}|MICROSERVICE_AUTH_HEADERS)
 
 
 def test_change_password_endpoint_fails_user_not_found():
@@ -161,7 +164,7 @@ def test_change_password_endpoint_fails_user_not_found():
         "detail": "User not found"
     }
     #ACT
-    response = client.patch("/users/invalid_user_id/password", json=test_user_password_update)
+    response = client.patch("/users/invalid_user_id/password", json=test_user_password_update, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 404
     assert response.json() == expected_error
@@ -181,17 +184,17 @@ def test_delete_user_endpoint_success():
         "email":"test@test.com",
         "password":"testtesttest4"
     }
-    new_user = client.post("/users",json=test_user)
+    new_user = client.post("/users",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     new_user = new_user.json()
     new_user_id = jwt_encoder.decode_jwt(new_user["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
     del_user = {
         "userId":new_user_id
     }
     #ACT
-    response = client.delete("/users", json={"password":"testtesttest4"}, headers=del_user)
+    response = client.delete("/users", json={"password":"testtesttest4"}, headers=del_user|MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 204
-    assert client.get(f"/users/{new_user_id}").status_code == 404
+    assert client.get(f"/users/{new_user_id}", headers=MICROSERVICE_AUTH_HEADERS).status_code == 404
 
 
 def test_delete_user_endpoint_invalid_password():
@@ -205,7 +208,7 @@ def test_delete_user_endpoint_invalid_password():
         "detail":"Invalid password"
     }
     #ACT
-    response = client.delete("/users", json={"password":"invalid"}, headers=del_user)
+    response = client.delete("/users", json={"password":"invalid"}, headers=del_user|MICROSERVICE_AUTH_HEADERS)
     #ASSERT
     assert response.status_code == 403
     assert response.json() == expected_error
