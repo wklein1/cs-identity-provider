@@ -65,6 +65,19 @@ async def get_user_data(user_id:str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     return user
 
+@app.post(
+    "/uname",
+    description="Checks if username is taken.",
+    response_model=user_models.UserNameIsTakenModel,
+    response_description="Returns an object with a 'isTaken' boolean value'.",
+)
+async def check_user_name(user_name_data: user_models.UserNameInModel):
+    user_name_to_check = user_name_data.dict()["user_name"]
+    existing_user = usersDB.fetch({"user_name":user_name_to_check})
+    if len(existing_user.items)>0:
+        return {"is_taken":True}
+    else:
+        return {"is_taken":False}
 
 @app.post(
     "/users",
