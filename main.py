@@ -12,6 +12,7 @@ import deta
 app = FastAPI()
 
 PROJECT_KEY = config("PROJECT_KEY")
+MICROSERVICE_ACCESS_SECRET = config("MICROSERVICE_ACCESS_SECRET")
 JWT_SECRET = config("JWT_SECRET")
 JWT_ALGORITHM="HS256"
 JWT_AUDIENCE="kbe-aw2022-frontend.netlify.app"
@@ -21,6 +22,7 @@ deta = deta.Deta(PROJECT_KEY)
 usersDB = deta.Base("users")
 
 jwt_encoder = JwtEncoder(secret=JWT_SECRET, algorithm=JWT_ALGORITHM)
+microservice_access_jwt_encoder = JwtEncoder(secret=MICROSERVICE_ACCESS_SECRET, algorithm=JWT_ALGORITHM)
 
 origins = [
     "http://localhost",
@@ -35,6 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"])
 
+def protect_route(microservice_access_token:str):
+    if not microservice_access_jwt_encoder.validate_jwt(token=microservice_access_token):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
 
 @app.post(
     "/validate",
@@ -43,7 +48,10 @@ app.add_middleware(
     response_description="Returns key value pair 'is_valid:boolean'.",
     tags=["auth"]
 )
-async def validate_token(token: token_validation_models.tokenModel):
+async def validate_token(token: token_validation_models.tokenModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+    
     jwt_token = token.dict()["token"]
     token_is_valid = jwt_encoder.validate_jwt(token=jwt_token,audience=JWT_AUDIENCE,issuer=JWT_ISSUER)
     return {"is_valid":token_is_valid}
@@ -61,7 +69,10 @@ async def validate_token(token: token_validation_models.tokenModel):
     response_description="Returns an object with user data.",
     tags=["user data"]
 )
-async def get_user_data(user_id:str):
+async def get_user_data(user_id:str, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+
     user = usersDB.get(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -74,7 +85,10 @@ async def get_user_data(user_id:str):
     response_description="Returns an object with a 'isTaken' boolean value'.",
     tags=["user data"]
 )
-async def check_user_name(user_name_data: user_models.UserNameInModel):
+async def check_user_name(user_name_data: user_models.UserNameInModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+
     user_name_to_check = user_name_data.dict()["user_name"]
     existing_user = usersDB.fetch({"user_name":user_name_to_check})
     if len(existing_user.items)>0:
@@ -103,7 +117,10 @@ async def check_user_name(user_name_data: user_models.UserNameInModel):
     response_description="Returns an object with the user name and access token for the registered user'.",
     tags=["auth"]
 )
-async def register_user(user_data: user_models.UserInModel):
+async def register_user(user_data: user_models.UserInModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token) 
+    
     new_user = user_data.dict()
     new_user_id = str(uuid.uuid1())
     new_user["key"] = new_user_id
@@ -135,7 +152,10 @@ async def register_user(user_data: user_models.UserInModel):
     response_description="Returns an object with the user name and access token for the authenticated user'.",
     tags=["auth"]
 )
-async def login_user(user_data: auth_models.LoginModel):
+async def login_user(user_data: auth_models.LoginModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+    
     user_dict = user_data.dict()
     try:
         db_response = usersDB.fetch({"user_name":user_dict["user_name"]})
@@ -184,7 +204,10 @@ async def login_user(user_data: auth_models.LoginModel):
     description="Updates user with values specified in request body.",
     tags=["user data"]
 )
-async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: str):
+async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: str, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+    
     user_data_dict = user_data.dict()
     try:
         user = usersDB.get(user_id)
@@ -234,7 +257,10 @@ async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: s
     description="Updates the user password.",
     tags=["user data"]
 )
-async def change_user_password_by_id(change_password_data: user_models.UserChangePasswordInModel, user_id: str):
+async def change_user_password_by_id(change_password_data: user_models.UserChangePasswordInModel, user_id: str, microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+    
     user_change_password_dict = change_password_data.dict()
     new_password = user_change_password_dict["new_password"]
     try:
@@ -273,7 +299,10 @@ async def change_user_password_by_id(change_password_data: user_models.UserChang
     tags=["user data"]
 
 )
-async def delete_user(passwordIn:auth_models.PasswordInModel, user_id: str = Header(alias="userId")):
+async def delete_user(passwordIn:auth_models.PasswordInModel, user_id: str = Header(alias="userId"), microservice_access_token:str = Header(alias="microserviceAccessToken")):
+    
+    protect_route(microservice_access_token)
+    
     try:
         user = usersDB.get(user_id)
     except:
