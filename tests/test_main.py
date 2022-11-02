@@ -32,6 +32,43 @@ def test_login_user_endpoint_fails_invalid_credentials():
     assert response.json() == {'detail': 'Unprocessable Entity'}
 
 
+def test_get_user_endpoint_returns_user_data():
+    #ARRANGE
+    client = TestClient(app)
+    TEST_USER_ID = config("TEST_USER_ID")
+    expected_user_data = {
+        "first_name":"test",
+        "last_name":"test",
+        "user_name":"test_usr",
+        "email":"test@test.com",
+    }
+    #ACT
+    response = client.get(f"/users/{TEST_USER_ID}")
+    #ASSERT
+    assert response.status_code == 200
+    assert response.json() == expected_user_data
+
+
+def test_get_user_endpoint_returns_user_data_user_not_found():
+    #ARRANGE
+    client = TestClient(app)
+    TEST_USER_ID = config("TEST_USER_ID")
+    expected_user_data = {
+        "first_name":"test",
+        "last_name":"test",
+        "user_name":"test_usr",
+        "email":"test@test.com",
+    }
+    expected_error = {
+        "detail": "User not found."
+    }
+    #ACT
+    response = client.get(f"/users/{TEST_USER_ID}")
+    #ASSERT
+    assert response.status_code == 404
+    assert response.json() == expected_error
+
+
 def test_validate_token_endpoint():
     #ARRANGE
     VALID_TOKEN = config("VALID_TOKEN")
