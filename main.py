@@ -182,6 +182,7 @@ async def login_user(user_data: auth_models.LoginModel):
                 "description": "Error raised if the user can not be found."
         }},
     description="Updates user with values specified in request body.",
+    tags=["user data"]
 )
 async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: str):
     user_data_dict = user_data.dict()
