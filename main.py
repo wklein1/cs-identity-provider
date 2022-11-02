@@ -210,6 +210,54 @@ async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: s
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
             
 
+@app.patch(
+    "/users/{user_id}/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_description="Returns no data.",
+    responses={
+        503 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if database request fails."
+        },
+        422 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if password update is not valid."
+        },
+        403 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if user password is invalid."
+            },
+        404 :{
+                "model": error_models.HTTPErrorModel,
+                "description": "Error raised if the user can not be found."
+        }},
+    description="Updates the user password.",
+    tags=["user data"]
+)
+async def change_user_password_by_id(change_password_data: user_models.UserChangePasswordInModel, user_id: str):
+    user_change_password_dict = change_password_data.dict()
+    new_password = user_change_password_dict["new_password"]
+    try:
+        user = usersDB.get(user_id)
+    except:
+        print("first ex")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    else:
+        #check for password
+        if not encryption.verify(plain_password=user_change_password_dict["password"], hashed_password=user["password"]):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
+        try:
+            user_password_update={
+                "password":encryption.hash(new_password)
+            }
+            usersDB.update(updates=user_password_update, key=user_id)
+        except Exception as ex:
+            print("second ex: "+ str(ex))
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+           
+
 @app.delete(
      "/users",
     status_code=status.HTTP_204_NO_CONTENT,
