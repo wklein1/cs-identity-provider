@@ -48,6 +48,24 @@ def validate_token(token: token_validation_models.tokenModel):
     return {"is_valid":token_is_valid}
 
 
+@app.get(
+    "/users/{user_id}",
+    description="Get user data of a given user.",
+    responses={ 
+        404 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if the user could not be found."
+        }},
+    response_model=user_models.UserOutModel,
+    response_description="Returns an object with user data.",
+)
+def get_user_data(user_id:str):
+    user = usersDB.get(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    return user
+
+
 @app.post(
     "/users",
     description="Register a new user.",

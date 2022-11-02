@@ -37,9 +37,9 @@ def test_get_user_endpoint_returns_user_data():
     client = TestClient(app)
     TEST_USER_ID = config("TEST_USER_ID")
     expected_user_data = {
-        "first_name":"test",
-        "last_name":"test",
-        "user_name":"test_usr",
+        "firstName":"test",
+        "lastName":"test",
+        "userName":"test_usr",
         "email":"test@test.com",
     }
     #ACT
@@ -49,21 +49,14 @@ def test_get_user_endpoint_returns_user_data():
     assert response.json() == expected_user_data
 
 
-def test_get_user_endpoint_returns_user_data_user_not_found():
+def test_get_user_endpoint_user_not_found():
     #ARRANGE
     client = TestClient(app)
-    TEST_USER_ID = config("TEST_USER_ID")
-    expected_user_data = {
-        "first_name":"test",
-        "last_name":"test",
-        "user_name":"test_usr",
-        "email":"test@test.com",
-    }
     expected_error = {
         "detail": "User not found."
     }
     #ACT
-    response = client.get(f"/users/{TEST_USER_ID}")
+    response = client.get("/users/not_existing_id")
     #ASSERT
     assert response.status_code == 404
     assert response.json() == expected_error
