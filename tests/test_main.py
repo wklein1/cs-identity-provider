@@ -217,3 +217,4 @@ def test_delete_user_endpoint():
     response = client.delete("/users",headers=del_user)
     #ASSERT
     assert response.status_code == 204
+    assert client.get(f"/users/{new_user_id}").status_code == 404
