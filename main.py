@@ -41,6 +41,7 @@ app.add_middleware(
     description="Validates the token from the request body.",
     response_model=token_validation_models.validateResponseModel,
     response_description="Returns key value pair 'is_valid:boolean'.",
+    tags=["auth"]
 )
 async def validate_token(token: token_validation_models.tokenModel):
     jwt_token = token.dict()["token"]
@@ -58,6 +59,7 @@ async def validate_token(token: token_validation_models.tokenModel):
         }},
     response_model=user_models.UserOutModel,
     response_description="Returns an object with user data.",
+    tags=["user data"]
 )
 async def get_user_data(user_id:str):
     user = usersDB.get(user_id)
@@ -70,6 +72,7 @@ async def get_user_data(user_id:str):
     description="Checks if username is taken.",
     response_model=user_models.UserNameIsTakenModel,
     response_description="Returns an object with a 'isTaken' boolean value'.",
+    tags=["user data"]
 )
 async def check_user_name(user_name_data: user_models.UserNameInModel):
     user_name_to_check = user_name_data.dict()["user_name"]
@@ -98,6 +101,7 @@ async def check_user_name(user_name_data: user_models.UserNameInModel):
         }},
     response_model=auth_models.AuthResponseModel,
     response_description="Returns an object with the user name and access token for the registered user'.",
+    tags=["auth"]
 )
 async def register_user(user_data: user_models.UserInModel):
     new_user = user_data.dict()
@@ -129,6 +133,7 @@ async def register_user(user_data: user_models.UserInModel):
     description="Authenticate a user.",
     response_model=auth_models.AuthResponseModel,
     response_description="Returns an object with the user name and access token for the authenticated user'.",
+    tags=["auth"]
 )
 async def login_user(user_data: auth_models.LoginModel):
     user_dict = user_data.dict()
@@ -162,7 +167,9 @@ async def login_user(user_data: auth_models.LoginModel):
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if database request fails."
         }},
-    description="Removes an item from the favorites list of a user"
+    description="Removes an item from the favorites list of a user",
+    tags=["user data"]
+
 )
 async def delete_user(user_id: str = Header(alias="userId")):
     try:
