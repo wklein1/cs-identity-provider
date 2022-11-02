@@ -59,3 +59,8 @@ class UserNameInModel(CustomBaseModel):
 
 class UserNameIsTakenModel(CustomBaseModel):
     is_taken:bool
+
+class UserChangePasswordInModel(CustomBaseModel):
+    password:str
+    new_password:constr(regex=PASSWORD_REGEX)
+    
