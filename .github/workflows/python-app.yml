@@ -25,6 +25,8 @@ jobs:
          echo PROJECT_KEY=${{ secrets.PROJECT_KEY }} >> .env
          echo TEST_USER_ID=${{ secrets.TEST_USER_ID }} >> .env
          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+         echo MICROSERVICE_ACCESS_SECRET=${{ secrets.MICROSERVICE_ACCESS_SECRET }} >> .env
+         echo VALID_MICROSERVICE_ACCESS_TOKEN=${{ secrets.VALID_MICROSERVICE_ACCESS_TOKEN }} >> .env
          echo VALID_TOKEN=${{ secrets.VALID_TOKEN }} >> .env
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
