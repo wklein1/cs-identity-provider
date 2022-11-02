@@ -131,7 +131,7 @@ def test_register_user_endpoint():
     assert response.json()["userName"] == "test_usr2"
     #CLEANUP
     new_user_id = jwt_encoder.decode_jwt(response.json()["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
-    response = client.delete("/users",headers={"userId":new_user_id})
+    response = client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id})
 
 def test_register_user_endpoint_fails_user_name_already_taken():
     #ARRANGE
@@ -254,7 +254,24 @@ def test_delete_user_endpoint():
         "userId":new_user_id
     }
     #ACT
-    response = client.delete("/users",headers=del_user)
+    response = client.delete("/users", json={"password":"testtesttest4"}, headers=del_user)
     #ASSERT
     assert response.status_code == 204
     assert client.get(f"/users/{new_user_id}").status_code == 404
+
+
+def test_delete_user_endpoint_invalid_password():
+    #ARRANGE
+    client = TestClient(app)
+    TEST_USER_ID = config("TEST_USER_ID")
+    del_user = {
+        "userId":TEST_USER_ID
+    }
+    expected_error = {
+        "detail":"Invalid password"
+    }
+    #ACT
+    response = client.delete("/users", json={"password":"invalid"}, headers=del_user)
+    #ASSERT
+    assert response.status_code == 403
+    assert response.json() == expected_error
