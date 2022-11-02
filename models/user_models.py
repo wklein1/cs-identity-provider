@@ -36,6 +36,22 @@ class UserOutModel(CustomBaseModel):
             }
         }
 
+class UserUpdatesInModel(CustomBaseModel):
+    first_name:str = Field(min_length=2, max_length=24)
+    last_name:str = Field(min_length=1, max_length=24)
+    user_name:str = Field(min_length=3, max_length=24)
+    email:EmailStr
+    password:str
+    class Config:
+        schema = {
+            "demo":{
+                "firstName":"first name",
+                "lastName":"last name",
+                "userName":"user_name",
+                "email":"email@mail.com",
+                "password":"123"
+            }
+        }
 
 class UserNameInModel(CustomBaseModel):
     user_name:str

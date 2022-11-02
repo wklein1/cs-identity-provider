@@ -64,7 +64,7 @@ async def validate_token(token: token_validation_models.tokenModel):
 async def get_user_data(user_id:str):
     user = usersDB.get(user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 @app.post(
@@ -111,7 +111,7 @@ async def register_user(user_data: user_models.UserInModel):
     
     existing_user = usersDB.fetch({"user_name":new_user["user_name"]})
     if len(existing_user.items)>0:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken")
         
     try:
         usersDB.insert(new_user)
@@ -160,6 +160,55 @@ async def login_user(user_data: auth_models.LoginModel):
     return {"user_name":user["user_name"], "token":jwt_token}
 
 
+@app.patch(
+    "/users/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_description="Returns no data.",
+    responses={
+        503 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if database request fails."
+        },
+        422 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if provided user updates are not valid."
+        },
+        403 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if password is invalid."
+            },
+        404 :{
+                "model": error_models.HTTPErrorModel,
+                "description": "Error raised if the user can not be found."
+        }},
+    description="Updates user with values specified in request body.",
+)
+async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: str):
+    user_data_dict = user_data.dict()
+    try:
+        user = usersDB.get(user_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    else:
+        #check for password
+        if not encryption.verify(plain_password=user_data_dict["password"], hashed_password=user["password"]):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
+        #when updating user name check if user name is already taken
+        if user_data_dict["user_name"] != user["user_name"]:
+            existing_user = usersDB.fetch({"user_name":user_data_dict["user_name"]})
+            if len(existing_user.items)>0:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken")
+        #try to update user
+        user_updates = user_data_dict.copy()
+        del user_updates["password"]
+        try:
+            usersDB.update(updates=user_updates, key=user_id)
+        except:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+            
+
 @app.delete(
      "/users",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -171,7 +220,7 @@ async def login_user(user_data: auth_models.LoginModel):
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if the provided password is invalid."
         }},
-    description="Removes an item from the favorites list of a user",
+    description="Removes an item from the favorites list of a user.",
     tags=["user data"]
 
 )
