@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from fastapi import status
 from decouple import config
 from modules.jwt.jwt_module import JwtEncoder
+import uuid
 from main import app
 
 def test_login_user_endpoint():
@@ -86,6 +87,27 @@ def test_validate_token_endpoint_with_invalid_token():
     assert response.status_code == 200
     assert response.json() == expected_response
 
+def test_username_is_taken_endpoint_username_not_taken_returns_false():
+    #ARRANGE
+    client = TestClient(app)
+    test_username = str(uuid.uuid1())
+    expected_response = {"isTaken":False}
+    #ACT
+    response = client.post("/uname",json={"userName":test_username})
+    #ASSERT
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+def test_username_is_taken_endpoint_username_is_taken_returns_true():
+    #ARRANGE
+    client = TestClient(app)
+    test_username = "test_usr"
+    expected_response = {"isTaken":True}
+    #ACT
+    response = client.post("/uname",json={"userName":test_username})
+    #ASSERT
+    assert response.status_code == 200
+    assert response.json() == expected_response
 
 def test_register_user_endpoint():
     #ARRANGE

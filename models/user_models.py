@@ -12,9 +12,9 @@ class UserInModel(CustomBaseModel):
     class Config:
         schema = {
             "demo":{
-                "first_name":"first name",
-                "last_name":"last name",
-                "user_name":"user_name",
+                "firstName":"first name",
+                "lastName":"last name",
+                "userName":"user_name",
                 "email":"email@mail.com",
                 "password":"123"
             }
@@ -28,10 +28,18 @@ class UserOutModel(CustomBaseModel):
     class Config:
         schema = {
             "demo":{
-                "first_name":"first name",
-                "last_name":"last name",
-                "user_name":"user name",
+                "firstName":"first name",
+                "lastName":"last name",
+                "userName":"user name",
                 "email":"email@mail.com",
                 "password":"123"
             }
         }
+
+
+class UserNameInModel(CustomBaseModel):
+    user_name:str
+    
+
+class UserNameIsTakenModel(CustomBaseModel):
+    is_taken:bool
