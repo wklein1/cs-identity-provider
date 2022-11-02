@@ -78,6 +78,10 @@ async def get_user_data(user_id:str):
         422 :{
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if provided user data is not valid."
+        },
+        409 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if the provided username is already taken."
         }},
     response_model=auth_models.AuthResponseModel,
     response_description="Returns an object with the user name and access token for the registered user'.",
@@ -87,6 +91,11 @@ async def register_user(user_data: user_models.UserInModel):
     new_user_id = str(uuid.uuid1())
     new_user["key"] = new_user_id
     new_user["password"] = encryption.hash(new_user["password"])
+    
+    existing_user = usersDB.fetch({"user_name":new_user["user_name"]})
+    if len(existing_user.items)>0:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken.")
+        
     try:
         usersDB.insert(new_user)
     except:
