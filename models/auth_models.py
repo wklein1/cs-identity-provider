@@ -7,3 +7,6 @@ class AuthResponseModel(CustomBaseModel):
 class LoginModel(CustomBaseModel):
     user_name:str
     password:str
+
+class PasswordInModel(CustomBaseModel):
+    password:str

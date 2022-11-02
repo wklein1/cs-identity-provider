@@ -131,7 +131,7 @@ def test_register_user_endpoint():
     assert response.json()["userName"] == "test_usr2"
     #CLEANUP
     new_user_id = jwt_encoder.decode_jwt(response.json()["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
-    response = client.delete("/users",headers={"userId":new_user_id})
+    response = client.delete("/users", json={"password":"testtesttest4"}, headers={"userId":new_user_id})
 
 def test_register_user_endpoint_fails_user_name_already_taken():
     #ARRANGE
@@ -254,7 +254,37 @@ def test_delete_user_endpoint():
         "userId":new_user_id
     }
     #ACT
-    response = client.delete("/users",headers=del_user)
+    response = client.delete("/users", json={"password":"testtesttest4"}, headers=del_user)
     #ASSERT
     assert response.status_code == 204
     assert client.get(f"/users/{new_user_id}").status_code == 404
+
+
+def test_delete_user_endpoint_invalid_password():
+    #ARRANGE
+    client = TestClient(app)
+    JWT_SECRET = config("JWT_SECRET")
+    jwt_aud="kbe-aw2022-frontend.netlify.app"
+    jwt_iss="cs-identity-provider.deta.dev"
+    jwt_encoder = JwtEncoder(JWT_SECRET, "HS256")
+    test_user = {
+        "first_name":"test",
+        "last_name":"test",
+        "user_name":"test_usr2",
+        "email":"test@test.com",
+        "password":"testtesttest4"
+    }
+    new_user = client.post("/users",json=test_user)
+    new_user = new_user.json()
+    new_user_id = jwt_encoder.decode_jwt(new_user["token"],audience=jwt_aud,issuer=jwt_iss)["userId"]
+    del_user = {
+        "userId":new_user_id
+    }
+    expected_error = {
+        "detail":"Invalid password"
+    }
+    #ACT
+    response = client.delete("/users", json={"password":"invalid"}, headers=del_user)
+    #ASSERT
+    assert response.status_code == 403
+    assert response.json() == expected_error

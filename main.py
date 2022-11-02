@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status, Header
+from fastapi import FastAPI, HTTPException, status, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 from datetime import datetime,timedelta
@@ -166,12 +166,25 @@ async def login_user(user_data: auth_models.LoginModel):
     responses={503 :{
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if database request fails."
+        },
+        403 :{
+            "model": error_models.HTTPErrorModel,
+            "description": "Error raised if the provided password is invalid."
         }},
     description="Removes an item from the favorites list of a user",
     tags=["user data"]
 
 )
-async def delete_user(user_id: str = Header(alias="userId")):
+async def delete_user(passwordIn:auth_models.PasswordInModel, user_id: str = Header(alias="userId")):
+    try:
+        user = usersDB.get(user_id)
+    except:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
+    if not user:
+        return
+    else:
+        if not encryption.verify(plain_password=passwordIn.dict()["password"], hashed_password=user["password"]):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
     try:
         usersDB.delete(user_id)
     except:
