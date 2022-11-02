@@ -295,7 +295,7 @@ async def change_user_password_by_id(change_password_data: user_models.UserChang
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if the provided password is invalid."
         }},
-    description="Removes an item from the favorites list of a user.",
+    description="Deletes a user.",
     tags=["user data"]
 
 )
