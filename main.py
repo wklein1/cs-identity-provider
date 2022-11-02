@@ -95,7 +95,7 @@ def register_user(user_data: user_models.UserInModel):
         "userId":new_user_id,
         "aud":JWT_AUDIENCE,
         "iss":JWT_ISSUER,
-        "iat":datetime.now().timestamp(),
+        "iat":(datetime.now() - timedelta(seconds=1)).timestamp(),
         "exp":(datetime.now() + timedelta(minutes=20)).timestamp()
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
