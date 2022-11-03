@@ -32,8 +32,8 @@ def test_login_user_endpoint_fails_invalid_credentials():
     #ACT
     response = client.post("/login",json=test_user, headers=MICROSERVICE_AUTH_HEADERS)
     #ASSERT
-    assert response.status_code == 422
-    assert response.json() == {'detail': 'Unprocessable Entity'}
+    assert response.status_code == 403
+    assert response.json() == {'detail': 'Invalid credentials'}
 
 
 def test_validate_token_endpoint_success():
