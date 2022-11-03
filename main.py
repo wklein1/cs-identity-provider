@@ -78,23 +78,6 @@ async def get_user_data(user_id:str, microservice_access_token:str = Header(alia
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
-@app.post(
-    "/uname",
-    description="Checks if username is taken.",
-    response_model=user_models.UserNameIsTakenModel,
-    response_description="Returns an object with a 'isTaken' boolean value'.",
-    tags=["user data"]
-)
-async def check_user_name(user_name_data: user_models.UserNameInModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
-    
-    protect_route(microservice_access_token)
-
-    user_name_to_check = user_name_data.dict()["user_name"]
-    existing_user = usersDB.fetch({"user_name":user_name_to_check})
-    if len(existing_user.items)>0:
-        return {"is_taken":True}
-    else:
-        return {"is_taken":False}
 
 @app.post(
     "/users",
@@ -108,10 +91,6 @@ async def check_user_name(user_name_data: user_models.UserNameInModel, microserv
         422 :{
             "model": error_models.HTTPErrorModel,
             "description": "Error raised if provided user data is not valid."
-        },
-        409 :{
-            "model": error_models.HTTPErrorModel,
-            "description": "Error raised if the provided username is already taken."
         }},
     response_model=auth_models.AuthResponseModel,
     response_description="Returns an object with the user name and access token for the registered user'.",
@@ -126,10 +105,6 @@ async def register_user(user_data: user_models.UserInModel, microservice_access_
     new_user["key"] = new_user_id
     new_user["password"] = encryption.hash(new_user["password"])
     
-    existing_user = usersDB.fetch({"user_name":new_user["user_name"]})
-    if len(existing_user.items)>0:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken")
-        
     try:
         usersDB.insert(new_user)
     except:
@@ -155,20 +130,25 @@ async def register_user(user_data: user_models.UserInModel, microservice_access_
 async def login_user(user_data: auth_models.LoginModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
     
     protect_route(microservice_access_token)
-    
+
+    authenticated_user = None
+   
     user_dict = user_data.dict()
     try:
         db_response = usersDB.fetch({"user_name":user_dict["user_name"]})
     except:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Error while connecting to database")
-    if len(db_response.items)>0:
-        user = db_response.items[0]
-    else:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
     
-    if not encryption.verify(user_dict["password"], user["password"]):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
-
+    if len(db_response.items)==0:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials")        
+    else:
+        for user in db_response.items:
+            if encryption.verify(user_dict["password"], user["password"]):
+                authenticated_user = user
+    
+    if authenticated_user is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid credentials")        
+    
     token_payload={
         "userId":user["key"],
         "aud":JWT_AUDIENCE,
@@ -219,11 +199,7 @@ async def patch_user_by_id(user_data: user_models.UserUpdatesInModel, user_id: s
         #check for password
         if not encryption.verify(plain_password=user_data_dict["password"], hashed_password=user["password"]):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
-        #when updating user name check if user name is already taken
-        if user_data_dict["user_name"] != user["user_name"]:
-            existing_user = usersDB.fetch({"user_name":user_data_dict["user_name"]})
-            if len(existing_user.items)>0:
-                raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="User name is already taken")
+        
         #try to update user
         user_updates = user_data_dict.copy()
         del user_updates["password"]

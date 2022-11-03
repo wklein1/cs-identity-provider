@@ -38,29 +38,6 @@ def test_get_user_endpoint_user_not_found():
     assert response.json() == expected_error
 
 
-def test_username_is_taken_endpoint_username_not_taken_returns_false():
-    #ARRANGE
-    client = TestClient(app)
-    test_username = str(uuid.uuid1())
-    expected_response = {"isTaken":False}
-    #ACT
-    response = client.post("/uname",json={"userName":test_username}, headers=MICROSERVICE_AUTH_HEADERS)
-    #ASSERT
-    assert response.status_code == 200
-    assert response.json() == expected_response
-
-def test_username_is_taken_endpoint_username_is_taken_returns_true():
-    #ARRANGE
-    client = TestClient(app)
-    test_username = "test_usr"
-    expected_response = {"isTaken":True}
-    #ACT
-    response = client.post("/uname",json={"userName":test_username}, headers=MICROSERVICE_AUTH_HEADERS)
-    #ASSERT
-    assert response.status_code == 200
-    assert response.json() == expected_response
-
-
 def test_change_password_endpoint_success():
     #ARRANGE
     client = TestClient(app)
