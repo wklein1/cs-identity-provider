@@ -93,7 +93,7 @@ async def get_user_data(user_id:str, microservice_access_token:str = Header(alia
             "description": "Error raised if provided user data is not valid."
         }},
     response_model=auth_models.AuthResponseModel,
-    response_description="Returns an object with the user name and access token for the registered user'.",
+    response_description="Returns an object with the user name, access token and the expiration time of the access token for the registered user'.",
     tags=["auth"]
 )
 async def register_user(user_data: user_models.UserInModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
@@ -113,18 +113,18 @@ async def register_user(user_data: user_models.UserInModel, microservice_access_
         "userId":new_user_id,
         "aud":JWT_AUDIENCE,
         "iss":JWT_ISSUER,
-        "iat":(datetime.now() - timedelta(seconds=1)).timestamp(),
-        "exp":(datetime.now() + timedelta(minutes=20)).timestamp()
+        "iat":(datetime.utcnow() - timedelta(seconds=1)).timestamp(),
+        "exp":(datetime.utcnow() + timedelta(minutes=5)).timestamp()
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
-    return {"user_name":new_user["user_name"], "token":jwt_token}
+    return {"user_name":new_user["user_name"], "token":jwt_token, "exp":token_payload["exp"]}
 
 
 @app.post(
     "/login",
     description="Authenticate a user.",
     response_model=auth_models.AuthResponseModel,
-    response_description="Returns an object with the user name and access token for the authenticated user'.",
+    response_description="Returns an object with the user name, access token and the expiration time of the access token for the authenticated user'.",
     tags=["auth"]
 )
 async def login_user(user_data: auth_models.LoginModel, microservice_access_token:str = Header(alias="microserviceAccessToken")):
@@ -153,11 +153,11 @@ async def login_user(user_data: auth_models.LoginModel, microservice_access_toke
         "userId":user["key"],
         "aud":JWT_AUDIENCE,
         "iss":JWT_ISSUER,
-        "iat":datetime.now().timestamp(),
-        "exp":(datetime.now() + timedelta(minutes=20)).timestamp()
+        "iat":datetime.utcnow().timestamp(),
+        "exp":(datetime.utcnow() + timedelta(minutes=5)).timestamp()
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
-    return {"user_name":user["user_name"], "token":jwt_token}
+    return {"user_name":user["user_name"], "token":jwt_token, "exp":token_payload["exp"]}
 
 
 @app.patch(
