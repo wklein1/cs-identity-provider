@@ -113,8 +113,8 @@ async def register_user(user_data: user_models.UserInModel, microservice_access_
         "userId":new_user_id,
         "aud":JWT_AUDIENCE,
         "iss":JWT_ISSUER,
-        "iat":(datetime.utcnow() - timedelta(seconds=1)).timestamp(),
-        "exp":(datetime.utcnow() + timedelta(minutes=5)).timestamp()
+        "iat":(datetime.now() - timedelta(seconds=1)).timestamp(),
+        "exp":(datetime.now() + timedelta(minutes=5)).timestamp()
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
     return {"user_name":new_user["user_name"], "token":jwt_token, "exp":token_payload["exp"]}
@@ -153,8 +153,8 @@ async def login_user(user_data: auth_models.LoginModel, microservice_access_toke
         "userId":user["key"],
         "aud":JWT_AUDIENCE,
         "iss":JWT_ISSUER,
-        "iat":datetime.utcnow().timestamp(),
-        "exp":(datetime.utcnow() + timedelta(minutes=5)).timestamp()
+        "iat":(datetime.now() - timedelta(seconds=1)).timestamp(),
+        "exp":(datetime.now() + timedelta(minutes=5)).timestamp()
     }
     jwt_token = jwt_encoder.generate_jwt(token_payload)
     return {"user_name":user["user_name"], "token":jwt_token, "exp":token_payload["exp"]}
