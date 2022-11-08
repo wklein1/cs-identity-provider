@@ -15,7 +15,7 @@ Microservices:
 
 Api gateway: https://github.com/wklein1/cs-api-gateway
 
-Identity provider: https://github.com/wklein1/cs-identity-provider
+Identity provider: https://github.com/wklein1/cs-identity-provider (You are here)
 
 Components service: https://github.com/wklein1/cs-components-service
 
