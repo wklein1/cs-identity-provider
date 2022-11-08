@@ -2,6 +2,7 @@
 
 [![Automated tests](https://github.com/wklein1/cs-identity-provider/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/wklein1/cs-identity-provider/actions/workflows/python-app.yml)
 
+![identity_provider](https://user-images.githubusercontent.com/75163928/200686183-bfdf1ef6-f4d7-4fd5-bb4a-eb6c2e019494.jpg)
 
 Identity provider deploy: https://cs-identity-provider.deta.dev/docs
 
