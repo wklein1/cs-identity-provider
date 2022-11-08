@@ -7,7 +7,7 @@ Identity provider deploy: https://cs-identity-provider.deta.dev/docs
 
 A fullstack application project with microservice architecture backend. (Work in progress)
 
-Techstack: React, FastApi, Deta (noSQL DB)
+Tech Stack: React, FastApi, Deta (noSQL DB)
 
 Frontend: https://github.com/kbe-aw2022/frontend 	(deploy: https://kbe-aw2022-frontend.netlify.app/)
 
